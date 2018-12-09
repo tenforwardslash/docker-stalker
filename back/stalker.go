@@ -1,12 +1,53 @@
 package main
 
 import (
-"net/http"
-"strings"
+	"net/http"
+
+	"context"
+	"fmt"
+
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
+	"encoding/json"
 )
 
 func getAllContainers(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	//returns a list of docker containers
+	cli, err := client.NewEnvClient()
+	if err != nil {
+		panic(err)
+	}
+
+	containers, err := cli.ContainerList(context.Background(), 	types.ContainerListOptions{})
+	if err != nil {
+		panic(err)
+	}
+
+	var allContainers = []StalkerContainer{}
+
+	for _, dc := range containers {
+		fmt.Printf("%s", dc.State)
+		//TODO: get the environment variables
+		//TODO: get the network
+		c := StalkerContainer {
+			Name: dc.Names[0],
+			Image: dc.Image,
+			Created: dc.Created,
+			Status: dc.Status,
+			Ports: dc.Ports,
+			Mounts: dc.Mounts,
+			ContainerId: dc.ID,
+			State: dc.State,
+			//Network:
+			//EnvVars:
+		}
+
+		allContainers = append(allContainers, c);
+		//fmt.Printf("%s %s\n", container.ID[:10], container.Image)
+	}
+
+	json.NewEncoder(w).Encode(allContainers)
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -32,6 +73,7 @@ func main() {
 	http.HandleFunc("/restart", restartContainer)
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/isSecure", isSecure)
+	
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
 	}
