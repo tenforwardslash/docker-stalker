@@ -42,7 +42,7 @@ type StalkerContainer struct {
 	Ports       []*StalkerPort  `json:"ports"`
 	Mounts      []*StalkerMount `json:"mounts"`
 	EnvVars     []string        `json:"envVars"`
-	Network     string          `json:"network"`
+	Networks    []string          `json:"networks"`
 	ContainerId string          `json:"containerId"`
 }
 
