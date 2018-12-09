@@ -4,8 +4,6 @@ import (
 	"net/http"
 
 	"context"
-	"fmt"
-
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"encoding/json"
@@ -27,7 +25,6 @@ func getAllContainers(w http.ResponseWriter, r *http.Request) {
 	var allContainers = []StalkerContainer{}
 
 	for _, dc := range containers {
-		fmt.Printf("%s", dc.State)
 		//TODO: get the environment variables
 		//TODO: get the network
 		c := StalkerContainer {
@@ -35,8 +32,8 @@ func getAllContainers(w http.ResponseWriter, r *http.Request) {
 			Image: dc.Image,
 			Created: dc.Created,
 			Status: dc.Status,
-			Ports: dc.Ports,
-			Mounts: dc.Mounts,
+			Ports: GetStalkerPorts(dc.Ports),
+			Mounts: GetStalkerMounts(dc.Mounts),
 			ContainerId: dc.ID,
 			State: dc.State,
 			//Network:
