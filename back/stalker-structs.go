@@ -33,28 +33,27 @@ func GetStalkerMounts(mounts []types.MountPoint) []*StalkerMount {
 	return containerMounts
 }
 
-
 type StalkerContainer struct {
-	Name        string         `json:"name"`
-	Image       string         `json:"image"`
-	Created     int64          `json:"created"`
-	Status      string         `json:"status"`
-	State       string         `json:"state"`
+	Name        string          `json:"name"`
+	Image       string          `json:"image"`
+	Created     int64           `json:"created"`
+	Status      string          `json:"status"`
+	State       string          `json:"state"`
 	Ports       []*StalkerPort  `json:"ports"`
 	Mounts      []*StalkerMount `json:"mounts"`
-	EnvVars     []string       `json:"envVars"`
-	Network     string         `json:"network"`
-	ContainerId string         `json:"containerId"`
+	EnvVars     []string        `json:"envVars"`
+	Network     string          `json:"network"`
+	ContainerId string          `json:"containerId"`
 }
 
 type StalkerPort struct {
-	Private uint16	`json:"private"`
-	Public  uint16	`json:"public"`
-	Type	string	`json:"type"`
+	Private uint16 `json:"private"`
+	Public  uint16 `json:"public"`
+	Type    string `json:"type"`
 }
 
 type StalkerMount struct {
-	Type	mount.Type
-	Source	string
-	Destination	string
+	Type        mount.Type `json:"type"`
+	Source      string     `json:"source"`
+	Destination string     `json:"destination"`
 }
