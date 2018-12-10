@@ -4,6 +4,8 @@ import axios from "axios";
 
 import Constants from "../Constants";
 
+import "./ContainerDetail.css"
+
 class ContainerDetail extends Component {
     constructor(props) {
         super(props);
@@ -42,19 +44,57 @@ class ContainerDetail extends Component {
 
 const Detail = (props) => {
     console.log("CONTAINER!!!!", props.container.envVars);
-    const envVars = props.container.envVars.map((env) =>
-        <li>{env}</li>
+
+    let mounts = props.container.mounts.map((mount) =>
+        <li>{mount}</li>
     );
     return (
        <div>
            <div>
-               <ul>
-                   <li>{props.container.containerId}</li>
-                   {envVars}
-               </ul>
+               <h1>Container {props.container.image}</h1>
+               <div className="Section">
+                   <h2>Summary</h2>
+                   <ul>
+                       <li><b>Container Name: </b>{props.container.name}</li>
+                       <li><b>Status: </b>{props.container.status}</li>
+                       <li><b>Id: </b>{props.container.containerId}</li>
+                       {mounts}
+                   </ul>
+               </div>
+               <br/>
+               <Networks networks={props.container.networks}/>
+               <Envs envVars={props.container.envVars}/>
            </div>
        </div>
    )
+};
+
+const Networks = (props) => {
+    if (props.networks) {
+        let networks = props.networks.map((network) =>
+            <li>{network}</li>
+        );
+        return (
+            <div className="Section">
+                <h2>Networks</h2>
+                <ul>{networks}</ul>
+            </div>
+        )
+    }
+};
+
+const Envs = (props) => {
+    let envVars = props.envVars.map((env) =>
+        <li>{env}</li>
+    );
+    if (props.envVars) {
+        return (
+            <div className="Section">
+                <h2>Environment Variables</h2>
+                <ul>{envVars}</ul>
+            </div>
+        )
+    }
 };
 
 export default ContainerDetail;

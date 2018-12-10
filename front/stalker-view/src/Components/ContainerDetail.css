@@ -1,0 +1,19 @@
+ul {
+    padding-left: 10%;
+    margin: 0;
+    list-style: none;
+}
+
+li {
+    text-align:left;
+}
+
+h2 {
+    text-align: left;
+}
+
+.Section {
+    margin: auto;
+    width: 70%;
+    height: 60%;
+}
