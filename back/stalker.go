@@ -137,7 +137,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	//returns 200 for correct password, 401 unauthorized
 
 	//userIP := getIP(w,r)
-	
+
 	//GenerateToken
 
 	fmt.Printf("userIP: %s", string(userIP))
