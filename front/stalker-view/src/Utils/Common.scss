@@ -1,7 +1,11 @@
-$minty: #589667;
+@import 'Colors.scss';
 
 .stalker-color {
     color: $minty;
+}
+
+.stalker-bg {
+    background-color: mintyBg(0.2);
 }
 
 .stalker-button {
