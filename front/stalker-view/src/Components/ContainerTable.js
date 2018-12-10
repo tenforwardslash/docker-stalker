@@ -86,7 +86,7 @@ class ContainerTable extends Component {
 
 const Table = (props) => {
     let allItemRows = [];
-    allItemRows.push((<tr key={"row-data-header"}>
+    allItemRows.push((<tr className="header-row" key={"row-data-header"}>
         <th>Image</th>
         <th>Status</th>
         <th>Created</th>
@@ -97,7 +97,7 @@ const Table = (props) => {
         allItemRows = allItemRows.concat(perItemRows);
     });
     return (
-        <table><tbody>{allItemRows}</tbody></table>
+        <div className="container-table"><table><tbody>{allItemRows}</tbody></table></div>
     );
 };
 

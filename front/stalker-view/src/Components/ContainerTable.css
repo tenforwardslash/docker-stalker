@@ -2,14 +2,22 @@ table {
     border-collapse: collapse;
 }
 
-table, th, td {
-    border: 1px solid black;
-}
-
 td {
     cursor: pointer;
 }
 
+.row {
+    height: 50px;
+}
+
 .row:hover {
     background-color: rgba(0, 0, 0, 0.1);
+}
+
+.container-table {
+    margin: 10px;
+}
+
+.header-row {
+    border-bottom: 1px solid black;
 }
