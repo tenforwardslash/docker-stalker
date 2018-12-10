@@ -6,11 +6,16 @@ import Constants from "../Constants";
 
 import "./ContainerDetail.css"
 
+const RestartEnum = Object.freeze({"active":1, "success":2, "failed": 3});
+
+
 class ContainerDetail extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            detail: null
+            detail: null,
+            restartState: null,
+
         };
         this.restartContainer = this.restartContainer.bind(this);
     }
@@ -26,7 +31,7 @@ class ContainerDetail extends Component {
                     console.log("unauthorized");
                     break;
                 default:
-                    console.log("unhandleable status", response);
+                    console.log("unhandle-able status", response);
                     break;
             }
         }).catch(function(error){
@@ -35,18 +40,23 @@ class ContainerDetail extends Component {
     };
 
     restartContainer() {
+        let self = this;
         let id = this.state.detail.containerId;
         console.log(id);
+        this.setState({restartState: RestartEnum.active});
         axios.post(Constants.API_BASE + `/container/${id}/restart`).then(function(response) {
             console.log(response);
             switch (response.status) {
                 case 200:
                     console.log("successfully restarted");
+                    self.setState({restartState: RestartEnum.success});
                     break;
                 case 401:
+                    self.setState({restartState: RestartEnum.failed});
                     console.log("unauthorized");
                     break;
                 default:
+                    self.setState({restartState: RestartEnum.failed});
                     console.log("no idea");
                     break;
             }
@@ -56,7 +66,7 @@ class ContainerDetail extends Component {
     render() {
         console.log('detail', this.state.detail);
         if (this.state.detail) {
-            return <div> <Detail container={this.state.detail} restartContainer={this.restartContainer}/></div>
+            return <div> <Detail container={this.state.detail} restartState={this.state.restartState} restartContainer={this.restartContainer}/></div>
         }
         return <div>{this.props.match.params.containerId}</div>
     };
@@ -72,9 +82,7 @@ const Detail = (props) => {
        <div>
            <div>
                <h1>Container {props.container.image}</h1>
-               <button onClick={props.restartContainer}>
-                   Restart Container
-               </button>
+               <Restart restartContainer={props.restartContainer} restartState={props.restartState}/>
                <div className="Section">
                    <h2>Summary</h2>
                    <ul>
@@ -90,6 +98,25 @@ const Detail = (props) => {
            </div>
        </div>
    )
+};
+
+const Restart = (props) => {
+    let restart = null;
+    switch (props.restartState) {
+        case RestartEnum.failed:
+            restart = <div><b>Failed to restart</b></div>;
+            break;
+        case RestartEnum.active:
+            restart = <div>Restarting...</div>;
+            break;
+        case RestartEnum.success:
+            restart = <div>Successfully restarted!</div>;
+            break;
+        default:
+            restart = <button onClick={props.restartContainer}>Restart Container</button>;
+            break;
+    }
+    return restart
 };
 
 const Networks = (props) => {
