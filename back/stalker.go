@@ -127,20 +127,9 @@ func isSecure(w http.ResponseWriter, r *http.Request) {
 	//if PASSWORD is set, then true
 	//returns { "isSecure" : false/true }
 
-	if (r.Method != http.MethodPost) {
-		return
-	}
-
-	var password Password
-
-	err := json.NewDecoder(r.Body).Decode(&password)
-	if err != nil {
-		panic(err)
-	}
-
 	PASSWORD := os.Getenv("PASSWORD")
 
-	if PASSWORD == password.Password {
+	if len(PASSWORD) != 0 {
 		s := IsSecure{ IsSecure: true }
 		json.NewEncoder(w).Encode(s)
 	} else {
