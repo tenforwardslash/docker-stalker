@@ -1,0 +1,19 @@
+[{
+  "image": "alpine:latest",
+  "created": "xxx",
+  "status": "UP",
+  "ports": [
+    "5432:5432",
+    "1234:1234"
+  ],
+  "name": "smorgasbord-wily",
+  "mounts": [
+    "/etc:/etc"
+  ],
+  "envVars": [
+    "HERE=thereforewhywego",
+    "THERE=everywerrrrrrr"
+  ],
+  "network": "docker-default",
+  "containerID": "123123123rlkajsdf8awenslz9e4n328sal"
+}]
