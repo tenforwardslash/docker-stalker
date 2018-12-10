@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"net"
 	"os"
 	"context"
 	"github.com/docker/docker/api/types"
@@ -10,11 +11,16 @@ import (
 	"github.com/gorilla/mux"
 	"time"
 	"fmt"
+	"crypto/md5"
+	"encoding/hex"
+	"log"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var dockerClient *client.Client
 var containerPortMap = make(map[string][]*StalkerPort)
 var containerMap = make(map[string]*StalkerContainer)
+//var tokenMap = make(map[string])
 
 func detailContainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -87,14 +93,54 @@ func getAllContainers(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(allContainers)
 }
 
+func getIP(w http.ResponseWriter, req *http.Request) net.IP {
+
+	ip, _ , err := net.SplitHostPort(req.RemoteAddr)
+
+	fmt.Printf("IP: %s", string(ip))
+
+	if err != nil {
+		fmt.Fprintf(w, "userip: %q is not IP:port", req.RemoteAddr)
+	}
+
+	userIP := net.ParseIP(ip)
+
+
+
+	if userIP == nil {
+		fmt.Fprintf(w, "userip: %q is not IP:port", req.RemoteAddr)
+		return nil
+	} else {
+		return userIP
+	}
+
+}
+
+// GenerateToken returns a unique token based on user's IP
+func GenerateToken(ip string) string {
+	hash, err := bcrypt.GenerateFromPassword([]byte(ip), bcrypt.DefaultCost)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Hash to store: %s", string(hash))
+
+	hasher := md5.New()
+	hasher.Write(hash)
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
 func login(w http.ResponseWriter, r *http.Request) {
 	//POST call
 	//this takes in a json body: { "password" : xxxxx }
 	//the passed body is compared against environment variable PASSWORD set on backend startup
 	//returns 200 for correct password, 401 unauthorized
-	if (r.Method != http.MethodPost) {
-		return
-	}
+
+	//userIP := getIP(w,r)
+
+	//GenerateToken
+
+	fmt.Printf("userIP: %s", string(userIP))
 
 	var password Password
 
@@ -103,11 +149,10 @@ func login(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	//fmt.Printf("you posted password: %s", password.Password)
-
 	PASSWORD := os.Getenv("PASSWORD")
 
 	if PASSWORD == password.Password {
+		// Pass token
 		w.WriteHeader(200)
 		w.Write([]byte("200 - all good"))
 	} else {
