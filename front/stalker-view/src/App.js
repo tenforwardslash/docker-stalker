@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Auth from './Components/Auth.js';
 import ContainerTable from './Components/ContainerTable'
 import ContainerDetail from './Components/ContainerDetail'
-import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 import './App.css';
 
 

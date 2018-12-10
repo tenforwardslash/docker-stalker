@@ -74,11 +74,6 @@ class ContainerDetail extends Component {
 }
 
 const Detail = (props) => {
-    console.log("CONTAINER!!!!", props.container.envVars);
-
-    let mounts = props.container.mounts.map((mount) =>
-        <li>{mount}</li>
-    );
     let splitImage = props.container.image.split(":");
     return (
        <div>
@@ -91,12 +86,14 @@ const Detail = (props) => {
                        <li><b>Container Name: </b>{props.container.name}</li>
                        <li><b>Status: </b>{props.container.status}</li>
                        <li><b>Id: </b>{props.container.containerId}</li>
-                       {mounts}
                    </ul>
                </div>
                <br/>
-               <Networks networks={props.container.networks}/>
-               <Envs envVars={props.container.envVars}/>
+               <ListSection properties={props.container} section={"networks"} sectionTitle={"Networks"}/>
+               <ListSection properties={props.container} section={"envVars"} sectionTitle={"Environment Variables"}/>
+               {/* FIXME mounts isn't a simple array, will need its own code
+                <Section properties={props.container} section={"mounts"} sectionTitle={"Volume Mounts"}/>
+               */}
            </div>
        </div>
    )
@@ -121,32 +118,25 @@ const Restart = (props) => {
     return restart
 };
 
-const Networks = (props) => {
-    if (props.networks) {
-        let networks = props.networks.map((network) =>
-            <li>{network}</li>
-        );
-        return (
-            <div className="Section">
-                <h2>Networks</h2>
-                <ul>{networks}</ul>
-            </div>
-        )
-    }
+// ListSection is for a section that has a list of strings as its values. each value of the list will be written as an html list item
+const ListSection = (props) => {
+  if (props.properties[props.section]) {
+      let sectionProps = props.properties[props.section];
+      if (sectionProps.length === 0) {
+          return <div/>
+      }
+      console.log("SECTION", props.section, sectionProps);
+      let sectionList = sectionProps.map((elem) =>
+          <li key={"section-item-"+elem}>{elem}</li>
+      );
+      return (
+          <div className="Section">
+              <h2 className="SectionHeader">{props.sectionTitle}</h2>
+              <ul>{sectionList}</ul>
+          </div>
+      )
+  }
 };
 
-const Envs = (props) => {
-    let envVars = props.envVars.map((env) =>
-        <li>{env}</li>
-    );
-    if (props.envVars) {
-        return (
-            <div className="Section">
-                <h2>Environment Variables</h2>
-                <ul>{envVars}</ul>
-            </div>
-        )
-    }
-};
 
 export default ContainerDetail;
