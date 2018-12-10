@@ -13,7 +13,7 @@ class ContainerDetail extends Component {
     }
     componentDidMount() {
         let self = this;
-        axios.get(Constants.API_BASE + `/container/${self.props.match.params.containerId}/detail`).then(function (response){
+        axios.get(Constants.API_BASE + `/container/${self.props.match.params.containerId}/detail`, { headers: {"Authorization": localStorage.getItem("stalkerToken")}}).then(function (response) {
             switch (response.status) {
                 case 200:
                     console.log("nailed it", response.data);
