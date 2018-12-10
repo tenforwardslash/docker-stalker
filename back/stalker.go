@@ -13,6 +13,9 @@ import (
 type Password struct {
 	Password string `json:"password"`
 }
+type IsSecure struct {
+	IsSecure bool `json:"isSecure"`
+}
 
 func getAllContainers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -69,14 +72,13 @@ func getAllContainers(w http.ResponseWriter, r *http.Request) {
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
-	if (r.Method != http.MethodPost) {
-		return
-	}
-
 	//POST call
 	//this takes in a json body: { "password" : xxxxx }
 	//the passed body is compared against environment variable PASSWORD set on backend startup
 	//returns 200 for correct password, 401 unauthorized
+	if (r.Method != http.MethodPost) {
+		return
+	}
 
 	var password Password
 
@@ -104,6 +106,27 @@ func isSecure(w http.ResponseWriter, r *http.Request) {
 	//returns true/false for whether or not there is a login
 	//if PASSWORD is set, then true
 	//returns { "isSecure" : false/true }
+
+	if (r.Method != http.MethodPost) {
+		return
+	}
+
+	var password Password
+
+	err := json.NewDecoder(r.Body).Decode(&password)
+	if err != nil {
+		panic(err)
+	}
+
+	PASSWORD := os.Getenv("PASSWORD")
+
+	if PASSWORD == password.Password {
+		s := IsSecure{ IsSecure: true }
+		json.NewEncoder(w).Encode(s)
+	} else {
+		s := IsSecure{ IsSecure: false }
+		json.NewEncoder(w).Encode(s)
+	}
 }
 
 func restartContainer(w http.ResponseWriter, r *http.Request) {
