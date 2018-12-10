@@ -2,7 +2,7 @@ package main
 
 import (
 	"net/http"
-
+	"os"
 	"context"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -20,6 +20,7 @@ func detailContainer(w http.ResponseWriter, r *http.Request) {
 	containerId := vars["containerId"]
 
 	fullContainerInfo, err := dockerClient.ContainerInspect(context.Background(), containerId)
+
 	if err != nil {
 		panic(err)
 	}
@@ -44,6 +45,12 @@ func detailContainer(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(containerDetail)
 }
+
+
+type Password struct {
+	Password string `json:"password"`
+}
+
 
 func getAllContainers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -73,18 +80,42 @@ func getAllContainers(w http.ResponseWriter, r *http.Request) {
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
+	if (r.Method != http.MethodPost) {
+		return
+	}
+
 	//POST call
 	//this takes in a json body: { "password" : xxxxx }
 	//the passed body is compared against environment variable PASSWORD set on backend startup
-	//returns true/false auth
+	//returns 200 for correct password, 401 unauthorized
+
+	var password Password
+
+	err := json.NewDecoder(r.Body).Decode(&password)
+	if err != nil {
+		panic(err)
+	}
+
+	//fmt.Printf("you posted password: %s", password.Password)
+
+	PASSWORD := os.Getenv("PASSWORD")
+
+	if PASSWORD == password.Password {
+		w.WriteHeader(200)
+		w.Write([]byte("200 - all good"))
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("401 - unathorized"))
+	}
+
 }
 
 func isSecure(w http.ResponseWriter, r *http.Request) {
 	//GET call
 	//returns true/false for whether or not there is a login
 	//if PASSWORD is set, then true
+	//returns { "isSecure" : false/true }
 }
-
 
 func restartContainer(w http.ResponseWriter, r *http.Request) {
 	//POST call
@@ -94,17 +125,17 @@ func main() {
 	//initialize docker client
 	dockerClient, _ = client.NewEnvClient()
 
-	//TODO: set access control origin for the backend
+	r := mux.NewRouter()
 
 	//TODO: build something that checks for password on all endpoints
-	http.HandleFunc("/containers", getAllContainers)
-	http.HandleFunc("/container/{containerId}/restart", restartContainer)
-	http.HandleFunc("/container/{containerId}/detail", detailContainer)
+	r.HandleFunc("/containers", getAllContainers)
+	r.HandleFunc("/container/{containerId}/restart", restartContainer)
+	r.HandleFunc("/container/{containerId}/detail", detailContainer)
 
-	http.HandleFunc("/login", login)
-	http.HandleFunc("/isSecure", isSecure)
+	r.HandleFunc("/login", login)
+	r.HandleFunc("/isSecure", isSecure)
 	
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8080", r); err != nil {
 		panic(err)
 	}
 }
