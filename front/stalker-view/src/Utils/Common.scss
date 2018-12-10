@@ -1,24 +1,10 @@
-ul {
-    padding-left: 10%;
-    margin: 0;
-    list-style: none;
+$minty: #589667;
+
+.stalker-color {
+    color: $minty;
 }
 
-li {
-    text-align:left;
-}
-
-h2 {
-    text-align: left;
-}
-
-.Section {
-    margin: auto;
-    width: 70%;
-    height: 60%;
-}
-
-.restart{
+.stalker-button {
     cursor: pointer;
     display:inline-block;
     padding:0.35em 1.2em;
@@ -32,11 +18,8 @@ h2 {
     text-align:center;
     transition: all 0.2s;
 }
-.restart:hover{
-    color: #589667;
-    background-color:#FFFFFF;
-}
 
-.docker-tag {
-    color: #589667;
+.stalker-button:hover{
+    color: $minty;
+    background-color:#FFFFFF;
 }

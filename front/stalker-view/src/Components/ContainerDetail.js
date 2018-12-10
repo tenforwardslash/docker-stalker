@@ -4,7 +4,8 @@ import axios from "axios";
 
 import Constants from "../Constants";
 
-import "./ContainerDetail.css"
+import "./ContainerDetail.scss"
+import "../Utils/Common.scss"
 
 const RestartEnum = Object.freeze({"active":1, "success":2, "failed": 3});
 
@@ -82,7 +83,7 @@ const Detail = (props) => {
     return (
        <div>
            <div>
-               <h1>container {splitImage[0]}:<b className="docker-tag">{splitImage[1]}</b></h1>
+               <h1>container {splitImage[0]}:<b className="stalker-color">{splitImage[1]}</b></h1>
                <Restart restartContainer={props.restartContainer} restartState={props.restartState}/>
                <div className="Section">
                    <h2>Summary</h2>
@@ -114,7 +115,7 @@ const Restart = (props) => {
             restart = <div>Successfully restarted!</div>;
             break;
         default:
-            restart = <button className="restart" onClick={props.restartContainer}>Restart Container</button>;
+            restart = <button className="stalker-button" onClick={props.restartContainer}>Restart Container</button>;
             break;
     }
     return restart

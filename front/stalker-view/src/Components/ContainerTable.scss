@@ -8,11 +8,11 @@ td {
 
 .row {
     height: 50px;
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.1);
+    }
 }
 
-.row:hover {
-    background-color: rgba(0, 0, 0, 0.1);
-}
 
 .container-table {
     margin: 10px;

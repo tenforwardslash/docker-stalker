@@ -4,7 +4,7 @@ import axios from "axios";
 import { Redirect } from 'react-router-dom';
 
 import Constants from "../Constants";
-import './ContainerTable.css';
+import './ContainerTable.scss';
 
 class ContainerTable extends Component {
     constructor(props) {
