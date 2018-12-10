@@ -11,7 +11,8 @@ class ContainerDetail extends Component {
         super(props);
         this.state = {
             detail: null
-        }
+        };
+        this.restartContainer = this.restartContainer.bind(this);
     }
     componentDidMount() {
         let self = this;
@@ -33,10 +34,29 @@ class ContainerDetail extends Component {
         })
     };
 
+    restartContainer() {
+        let id = this.state.detail.containerId;
+        console.log(id);
+        axios.post(Constants.API_BASE + `/container/${id}/restart`).then(function(response) {
+            console.log(response);
+            switch (response.status) {
+                case 200:
+                    console.log("successfully restarted");
+                    break;
+                case 401:
+                    console.log("unauthorized");
+                    break;
+                default:
+                    console.log("no idea");
+                    break;
+            }
+        }).catch(function(error) {console.error("unable to restart", error)})
+    };
+
     render() {
         console.log('detail', this.state.detail);
         if (this.state.detail) {
-            return <div> <Detail container={this.state.detail}/></div>
+            return <div> <Detail container={this.state.detail} restartContainer={this.restartContainer}/></div>
         }
         return <div>{this.props.match.params.containerId}</div>
     };
@@ -52,6 +72,9 @@ const Detail = (props) => {
        <div>
            <div>
                <h1>Container {props.container.image}</h1>
+               <button onClick={props.restartContainer}>
+                   Restart Container
+               </button>
                <div className="Section">
                    <h2>Summary</h2>
                    <ul>
