@@ -8,6 +8,8 @@ import (
 	"github.com/docker/docker/client"
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"time"
+	"fmt"
 )
 
 var dockerClient *client.Client
@@ -34,12 +36,19 @@ func detailContainer(w http.ResponseWriter, r *http.Request) {
 		i++
 	}
 
+	ports, exists := containerMap[containerId]
+
 	containerDetail := StalkerContainerDetail {
-		Ports: containerMap[containerId],
 		Mounts: GetStalkerMounts(fullContainerInfo.Mounts),
 		ContainerId: containerId,
 		Networks: networkNames,
 		EnvVars: fullContainerInfo.Config.Env,
+	}
+
+	if exists {
+		containerDetail.Ports = ports
+	} else {
+		containerDetail.Ports = []*StalkerPort{}
 	}
 
 
@@ -118,7 +127,23 @@ func isSecure(w http.ResponseWriter, r *http.Request) {
 }
 
 func restartContainer(w http.ResponseWriter, r *http.Request) {
-	//POST call
+	vars := mux.Vars(r)
+	containerId := vars["containerId"]
+
+	fmt.Printf("inside of restart container %s", containerId)
+
+	waitDuration := 5 * time.Second
+	err := dockerClient.ContainerRestart(context.Background(), containerId, &waitDuration)
+
+	if err != nil {
+		fmt.Println("ERRRORRR, returning 500")
+		panic(err)
+		w.WriteHeader(500)
+	} else {
+		fmt.Println("no error, returning 200")
+		w.WriteHeader(200)
+	}
+
 }
 
 func main() {
@@ -129,7 +154,7 @@ func main() {
 
 	//TODO: build something that checks for password on all endpoints
 	r.HandleFunc("/containers", getAllContainers)
-	r.HandleFunc("/container/{containerId}/restart", restartContainer)
+	r.HandleFunc("/container/{containerId}/restart", restartContainer).Methods("POST")
 	r.HandleFunc("/container/{containerId}/detail", detailContainer)
 
 	r.HandleFunc("/login", login).Methods("POST")
