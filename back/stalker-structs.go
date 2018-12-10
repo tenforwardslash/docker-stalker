@@ -6,7 +6,7 @@ import (
 )
 
 func GetStalkerPorts(ports []types.Port) []*StalkerPort {
-	var containerPorts []*StalkerPort
+	containerPorts := []*StalkerPort{}
 	//loop and create
 	for _, p := range ports {
 		containerPorts = append(containerPorts, &StalkerPort{
@@ -20,7 +20,7 @@ func GetStalkerPorts(ports []types.Port) []*StalkerPort {
 }
 
 func GetStalkerMounts(mounts []types.MountPoint) []*StalkerMount {
-	var containerMounts []*StalkerMount
+	containerMounts := []*StalkerMount{}
 	//loop and create
 	for _, m := range mounts {
 		containerMounts = append(containerMounts, &StalkerMount{
@@ -39,11 +39,15 @@ type StalkerContainer struct {
 	Created     int64           `json:"created"`
 	Status      string          `json:"status"`
 	State       string          `json:"state"`
+	ContainerId string          `json:"containerId"`
+}
+
+type StalkerContainerDetail struct {
+	ContainerId	string		`json:"containerId"`
 	Ports       []*StalkerPort  `json:"ports"`
 	Mounts      []*StalkerMount `json:"mounts"`
 	EnvVars     []string        `json:"envVars"`
 	Networks    []string          `json:"networks"`
-	ContainerId string          `json:"containerId"`
 }
 
 type StalkerPort struct {
