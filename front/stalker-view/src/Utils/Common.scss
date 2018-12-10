@@ -21,9 +21,8 @@
     color: #373737;
     text-align:center;
     transition: all 0.2s;
-}
-
-.stalker-button:hover{
-    color: $minty;
-    background-color:#FFFFFF;
+    &:hover {
+      @extend .stalker-bg;
+      color: black;
+    }
 }
