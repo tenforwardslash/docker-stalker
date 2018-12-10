@@ -2,10 +2,12 @@ package main
 
 import (
 	"net/http"
-	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"os"
+	"context"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
+	"encoding/json"
 )
 
 type Password struct {
@@ -13,8 +15,57 @@ type Password struct {
 }
 
 func getAllContainers(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	//returns a list of docker containers
 
+	backgroundContext := context.Background()
+	cli, err := client.NewEnvClient()
+	if err != nil {
+		panic(err)
+	}
+
+	containers, err := cli.ContainerList(backgroundContext, 	types.ContainerListOptions{})
+	if err != nil {
+		panic(err)
+	}
+
+
+	var allContainers = []StalkerContainer{}
+
+	for _, dc := range containers {
+		//TODO: get the environment variables
+
+		//get all network names
+		networkNames := make([]string, len(dc.NetworkSettings.Networks))
+
+		i := 0
+		for k := range dc.NetworkSettings.Networks {
+			networkNames[i] = k
+			i++
+		}
+
+		fullContainerInfo, err := cli.ContainerInspect(backgroundContext, dc.ID)
+		if err != nil {
+			panic(err)
+		}
+
+		c := StalkerContainer {
+			Name: dc.Names[0],
+			Image: dc.Image,
+			Created: dc.Created,
+			Status: dc.Status,
+			Ports: GetStalkerPorts(dc.Ports),
+			Mounts: GetStalkerMounts(dc.Mounts),
+			ContainerId: dc.ID,
+			State: dc.State,
+			Networks: networkNames,
+			EnvVars: fullContainerInfo.Config.Env,
+		}
+
+		allContainers = append(allContainers, c);
+	}
+
+	json.NewEncoder(w).Encode(allContainers)
 }
 
 func login(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +85,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	fmt.Printf("you posted password: %s", password.Password)
+	//fmt.Printf("you posted password: %s", password.Password)
 
 	PASSWORD := os.Getenv("PASSWORD")
 
