@@ -12,6 +12,14 @@ h2 {
     text-align: left;
 }
 
+.Header {
+    font-size: calc(10px + 3vmin);
+}
+
+.SectionHeader {
+    font-size: calc(10px + 2vmin);
+}
+
 .Section {
     margin: auto;
     width: 70%;

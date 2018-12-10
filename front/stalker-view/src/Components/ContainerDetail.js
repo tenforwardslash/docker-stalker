@@ -83,10 +83,10 @@ const Detail = (props) => {
     return (
        <div>
            <div>
-               <h1>container {splitImage[0]}:<b className="stalker-color">{splitImage[1]}</b></h1>
+               <h1 className="Header">container {splitImage[0]}:<b className="stalker-color">{splitImage[1]}</b></h1>
                <Restart restartContainer={props.restartContainer} restartState={props.restartState}/>
                <div className="Section">
-                   <h2>Summary</h2>
+                   <h2 className="SectionHeader">Summary</h2>
                    <ul>
                        <li><b>Container Name: </b>{props.container.name}</li>
                        <li><b>Status: </b>{props.container.status}</li>

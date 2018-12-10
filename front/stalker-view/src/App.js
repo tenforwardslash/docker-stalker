@@ -9,13 +9,16 @@ import './App.css';
 class App extends Component {
   render() {
     return (
-        <Router>
-            <div className="App">
-                <Route exact path='/' render={()=><Auth />} />
-                <Route exact path='/containers' render={()=><ContainerTable/>} />
-                <Route exact path="/container/:containerId" component={ContainerDetail} />
-            </div>
-        </Router>
+        <div>
+            <h1 className="App-header">docker stalker</h1><hr className="rule"/>
+            <Router>
+                <div className="App">
+                    <Route exact path='/' render={()=><Auth />} />
+                    <Route exact path='/containers' render={()=><ContainerTable/>} />
+                    <Route exact path="/container/:containerId" component={ContainerDetail} />
+                </div>
+            </Router>
+        </div>
     );
   }
 }
