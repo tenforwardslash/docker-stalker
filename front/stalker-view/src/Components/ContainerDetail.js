@@ -42,15 +42,15 @@ class ContainerDetail extends Component {
 
 const Detail = (props) => {
     console.log("CONTAINER!!!!", props.container.envVars);
-    const listItems = numbers.map((number) =>
-        <li>{number}</li>
+    const envVars = props.container.envVars.map((env) =>
+        <li>{env}</li>
     );
     return (
        <div>
            <div>
                <ul>
                    <li>{props.container.containerId}</li>
-                   {props.container.envVars.forEach(item => {return <li>{item}</li>})}
+                   {envVars}
                </ul>
            </div>
        </div>
