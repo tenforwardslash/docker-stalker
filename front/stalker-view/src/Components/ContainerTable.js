@@ -62,7 +62,7 @@ class ContainerTable extends Component {
     render() {
         if (this.state.clickedContainerId) {
             let url = `/container/${this.state.clickedContainerId}`;
-            return <Redirect to={url} />
+            return <Redirect push to={url} />
         }
         return <Table rows={this.state.data} renderItem={this.renderItem}/>
 
