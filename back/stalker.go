@@ -13,7 +13,8 @@ import (
 )
 
 var dockerClient *client.Client
-var containerMap = make(map[string][]*StalkerPort)
+var containerPortMap = make(map[string][]*StalkerPort)
+var containerMap = make(map[string]*StalkerContainer)
 
 func detailContainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -34,13 +35,13 @@ func detailContainer(w http.ResponseWriter, r *http.Request) {
 		i++
 	}
 
-	ports, exists := containerMap[containerId]
+	ports, exists := containerPortMap[containerId]
 
 	containerDetail := StalkerContainerDetail {
 		Mounts: GetStalkerMounts(fullContainerInfo.Mounts),
-		ContainerId: containerId,
 		Networks: networkNames,
 		EnvVars: fullContainerInfo.Config.Env,
+		StalkerContainer: containerMap[containerId],
 	}
 
 	if exists {
@@ -68,9 +69,9 @@ func getAllContainers(w http.ResponseWriter, r *http.Request) {
 	var allContainers = []StalkerContainer{}
 
 	for _, dc := range containers {
-		containerMap[dc.ID] = GetStalkerPorts(dc.Ports)
+		containerPortMap[dc.ID] = GetStalkerPorts(dc.Ports)
 
-		c := StalkerContainer {
+		c := &StalkerContainer {
 			Name: dc.Names[0],
 			Image: dc.Image,
 			Created: dc.Created,
@@ -79,7 +80,8 @@ func getAllContainers(w http.ResponseWriter, r *http.Request) {
 			State: dc.State,
 		}
 
-		allContainers = append(allContainers, c);
+		containerMap[dc.ID] = c
+		allContainers = append(allContainers, *c);
 	}
 
 	json.NewEncoder(w).Encode(allContainers)
