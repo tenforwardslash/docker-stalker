@@ -16,8 +16,6 @@ var dockerClient *client.Client
 var containerMap = make(map[string][]*StalkerPort)
 
 func detailContainer(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
 	vars := mux.Vars(r)
 	containerId := vars["containerId"]
 
@@ -62,7 +60,6 @@ type Password struct {
 
 
 func getAllContainers(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	containers, err := dockerClient.ContainerList(context.Background(), 	types.ContainerListOptions{})
 	if err != nil {
 		panic(err)
@@ -136,14 +133,19 @@ func restartContainer(w http.ResponseWriter, r *http.Request) {
 	err := dockerClient.ContainerRestart(context.Background(), containerId, &waitDuration)
 
 	if err != nil {
-		fmt.Println("ERRRORRR, returning 500")
 		panic(err)
 		w.WriteHeader(500)
 	} else {
-		fmt.Println("no error, returning 200")
 		w.WriteHeader(200)
 	}
 
+}
+
+func CORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		next.ServeHTTP(w, r)
+	})
 }
 
 func main() {
@@ -159,6 +161,8 @@ func main() {
 
 	r.HandleFunc("/login", login).Methods("POST")
 	r.HandleFunc("/isSecure", isSecure)
+
+	r.Use(CORS)
 	
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		panic(err)
