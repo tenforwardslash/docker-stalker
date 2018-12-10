@@ -132,7 +132,7 @@ func main() {
 	r.HandleFunc("/container/{containerId}/restart", restartContainer)
 	r.HandleFunc("/container/{containerId}/detail", detailContainer)
 
-	r.HandleFunc("/login", login)
+	r.HandleFunc("/login", login).Methods("POST")
 	r.HandleFunc("/isSecure", isSecure)
 	
 	if err := http.ListenAndServe(":8080", r); err != nil {
