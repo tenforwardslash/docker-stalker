@@ -17,3 +17,26 @@ h2 {
     width: 70%;
     height: 60%;
 }
+
+.restart{
+    cursor: pointer;
+    display:inline-block;
+    padding:0.35em 1.2em;
+    border:0.1em solid #373737;
+    margin:0 0.3em 0.3em 0;
+    border-radius:0.12em;
+    box-sizing: border-box;
+    text-decoration:none;
+    font-weight:300;
+    color: #373737;
+    text-align:center;
+    transition: all 0.2s;
+}
+.restart:hover{
+    color: #589667;
+    background-color:#FFFFFF;
+}
+
+.docker-tag {
+    color: #589667;
+}

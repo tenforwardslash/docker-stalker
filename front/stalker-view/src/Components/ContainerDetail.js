@@ -78,10 +78,11 @@ const Detail = (props) => {
     let mounts = props.container.mounts.map((mount) =>
         <li>{mount}</li>
     );
+    let splitImage = props.container.image.split(":");
     return (
        <div>
            <div>
-               <h1>Container {props.container.image}</h1>
+               <h1>container {splitImage[0]}:<b className="docker-tag">{splitImage[1]}</b></h1>
                <Restart restartContainer={props.restartContainer} restartState={props.restartState}/>
                <div className="Section">
                    <h2>Summary</h2>
@@ -113,7 +114,7 @@ const Restart = (props) => {
             restart = <div>Successfully restarted!</div>;
             break;
         default:
-            restart = <button onClick={props.restartContainer}>Restart Container</button>;
+            restart = <button className="restart" onClick={props.restartContainer}>Restart Container</button>;
             break;
     }
     return restart
