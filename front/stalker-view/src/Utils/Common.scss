@@ -1,0 +1,28 @@
+@import 'Colors.scss';
+
+.stalker-color {
+    color: $minty;
+}
+
+.stalker-bg {
+    background-color: mintyBg(0.2);
+}
+
+.stalker-button {
+    cursor: pointer;
+    display:inline-block;
+    padding:0.35em 1.2em;
+    border:0.1em solid #373737;
+    margin:0 0.3em 0.3em 0;
+    border-radius:0.12em;
+    box-sizing: border-box;
+    text-decoration:none;
+    font-weight:300;
+    color: #373737;
+    text-align:center;
+    transition: all 0.2s;
+    &:hover {
+      @extend .stalker-bg;
+      color: black;
+    }
+}

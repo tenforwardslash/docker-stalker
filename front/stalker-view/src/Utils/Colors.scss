@@ -1,0 +1,5 @@
+$minty: #589667;
+
+@function mintyBg($opacity) {
+  @return rgba(88, 150, 103, $opacity);
+}

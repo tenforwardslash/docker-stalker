@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Redirect } from 'react-router-dom';
 
 import Constants from '../Constants';
-import './Auth.css';
+import './Auth.scss';
 
 class Auth extends Component {
     constructor(props) {

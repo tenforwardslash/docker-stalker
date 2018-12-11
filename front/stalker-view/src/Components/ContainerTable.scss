@@ -1,0 +1,24 @@
+$row-height: 8vh;
+
+table {
+    border-collapse: collapse;
+}
+
+td {
+    cursor: pointer;
+}
+
+.header-row {
+  height: $row-height;
+}
+
+.row {
+    height: $row-height;
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.04);
+    }
+}
+
+.container-table {
+    margin: 10px;
+}

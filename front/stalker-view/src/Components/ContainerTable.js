@@ -4,7 +4,8 @@ import axios from "axios";
 import { Redirect } from 'react-router-dom';
 
 import Constants from "../Constants";
-import './ContainerTable.css';
+import './ContainerTable.scss';
+import '../Utils/Common.scss'
 
 class ContainerTable extends Component {
     constructor(props) {
@@ -61,7 +62,7 @@ class ContainerTable extends Component {
     render() {
         if (this.state.clickedContainerId) {
             let url = `/container/${this.state.clickedContainerId}`;
-            return <Redirect to={url} />
+            return <Redirect push to={url} />
         }
         return <Table rows={this.state.data} renderItem={this.renderItem}/>
 
@@ -86,7 +87,7 @@ class ContainerTable extends Component {
 
 const Table = (props) => {
     let allItemRows = [];
-    allItemRows.push((<tr key={"row-data-header"}>
+    allItemRows.push((<tr className="stalker-bg header-row" key={"row-data-header"}>
         <th>Image</th>
         <th>Status</th>
         <th>Created</th>
@@ -97,7 +98,7 @@ const Table = (props) => {
         allItemRows = allItemRows.concat(perItemRows);
     });
     return (
-        <table><tbody>{allItemRows}</tbody></table>
+        <div className="container-table"><table><tbody>{allItemRows}</tbody></table></div>
     );
 };
 
