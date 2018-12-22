@@ -25,8 +25,9 @@ class ContainerTable extends Component {
     }
     componentDidMount() {
         let self = this;
-        //todo: add to header the password
-        axios.get(Constants.API_BASE + "/containers", { headers: {"Authorization": localStorage.getItem("stalkerToken")}}).then(function(response) {
+        console.log('grabbing token', localStorage.getItem("stalkerToken"));
+        axios.get(Constants.API_BASE + "/containers",
+            { headers: {"Authorization": localStorage.getItem("stalkerToken")}}).then(function(response) {
             switch (response.status) {
                 case 200:
                     console.debug("successful container retrieval", response.data);
@@ -34,6 +35,7 @@ class ContainerTable extends Component {
                     break;
                 case 401:
                     console.error("unauthorized");
+                    this.props.history.push('/login');
                     break;
                 default:
                     console.error("cannot handle status code", response);

@@ -192,7 +192,7 @@ func ReturnJSON(next http.Handler) http.Handler {
 func Protected(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		isSecure := len(EnvPassword) > 0
-		token := w.Header().Get("Authorization")
+		token := r.Header.Get("Authorization")
 		_, tokenExists := tokenMap[token]
 
 		if !isSecure || tokenExists {
