@@ -32,7 +32,15 @@ class Auth extends Component {
 
     handleSubmit(event) {
         let self = this;
-        axios.post(Constants.API_BASE + "/login", {password: this.state.value}).then(function (response) {
+        let data = { password: this.state.value };
+        console.log('inside of login submit!', data);
+        axios.post(Constants.API_BASE + "/login",{
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Cache-Control': 'no-cache'
+            },
+            data
+            }).then(function (response) {
             let token = response.data.token;
             if (response.status === 200) {
                 self.setState({redirect: true});
