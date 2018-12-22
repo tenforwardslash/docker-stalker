@@ -1,26 +1,44 @@
 package main
 
 import (
-	"net/http"
-	"net"
-	"os"
 	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"encoding/json"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"time"
-	"fmt"
-	"crypto/md5"
-	"encoding/hex"
+	"github.com/justinas/alice"
 	"log"
-	"golang.org/x/crypto/bcrypt"
+	"net/http"
+	"os"
+	"strconv"
+	"time"
+	"math/rand"
 )
 
 var dockerClient *client.Client
 var containerPortMap = make(map[string][]*StalkerPort)
 var containerMap = make(map[string]*StalkerContainer)
-//var tokenMap = make(map[string])
+var tokenMap = make(map[string]string)
+
+const DefaultTokenExpiry = 21600000
+
+var EnvPassword = os.Getenv("PASSWORD")
+var EnvPort = os.Getenv("PORT")
+var EnvTokenExpiry = os.Getenv("TOKEN_EXPIRY_MILLI")
+
+type Password struct {
+	Password string `json:"password"`
+}
+
+type IsSecure struct {
+	IsSecure bool `json:"isSecure"`
+}
+
+type PassToken struct {
+	Token string `json:"token"`
+}
 
 func detailContainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -43,10 +61,10 @@ func detailContainer(w http.ResponseWriter, r *http.Request) {
 
 	ports, exists := containerPortMap[containerId]
 
-	containerDetail := StalkerContainerDetail {
-		Mounts: GetStalkerMounts(fullContainerInfo.Mounts),
-		Networks: networkNames,
-		EnvVars: fullContainerInfo.Config.Env,
+	containerDetail := StalkerContainerDetail{
+		Mounts:           GetStalkerMounts(fullContainerInfo.Mounts),
+		Networks:         networkNames,
+		EnvVars:          fullContainerInfo.Config.Env,
 		StalkerContainer: containerMap[containerId],
 	}
 
@@ -56,17 +74,11 @@ func detailContainer(w http.ResponseWriter, r *http.Request) {
 		containerDetail.Ports = []*StalkerPort{}
 	}
 
-
 	json.NewEncoder(w).Encode(containerDetail)
 }
 
-type Password struct {
-	Password string `json:"password"`
-}
-
-
 func getAllContainers(w http.ResponseWriter, r *http.Request) {
-	containers, err := dockerClient.ContainerList(context.Background(), 	types.ContainerListOptions{})
+	containers, err := dockerClient.ContainerList(context.Background(), types.ContainerListOptions{})
 	if err != nil {
 		panic(err)
 	}
@@ -76,13 +88,13 @@ func getAllContainers(w http.ResponseWriter, r *http.Request) {
 	for _, dc := range containers {
 		containerPortMap[dc.ID] = GetStalkerPorts(dc.Ports)
 
-		c := &StalkerContainer {
-			Name: dc.Names[0],
-			Image: dc.Image,
-			Created: dc.Created,
-			Status: dc.Status,
+		c := &StalkerContainer{
+			Name:        dc.Names[0],
+			Image:       dc.Image,
+			Created:     dc.Created,
+			Status:      dc.Status,
 			ContainerId: dc.ID,
-			State: dc.State,
+			State:       dc.State,
 		}
 
 		containerMap[dc.ID] = c
@@ -92,75 +104,49 @@ func getAllContainers(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(allContainers)
 }
 
-func getIP(w http.ResponseWriter, req *http.Request) net.IP {
-
-	ip, _ , err := net.SplitHostPort(req.RemoteAddr)
-
-	fmt.Printf("IP: %s", string(ip))
-
-	if err != nil {
-		fmt.Fprintf(w, "userip: %q is not IP:port", req.RemoteAddr)
-	}
-
-	userIP := net.ParseIP(ip)
-
-
-
-	if userIP == nil {
-		fmt.Fprintf(w, "userip: %q is not IP:port", req.RemoteAddr)
-		return nil
-	} else {
-		return userIP
-	}
-
+func tokenGenerator() string {
+	b := make([]byte, 16)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
 }
 
-// GenerateToken returns a unique token based on user's IP
-func GenerateToken(ip string) string {
-	hash, err := bcrypt.GenerateFromPassword([]byte(ip), bcrypt.DefaultCost)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Hash to store: %s", string(hash))
-
-	hasher := md5.New()
-	hasher.Write(hash)
-	return hex.EncodeToString(hasher.Sum(nil))
-}
-
+//POST call, takes in json body: { "password" : xxxxx }
+//returns 200 and a 6-hour token for correct password
+//returns 401 unauthorized otherwise
 func login(w http.ResponseWriter, r *http.Request) {
-	//POST call
-	//this takes in a json body: { "password" : xxxxx }
-	//the passed body is compared against environment variable PASSWORD set on backend startup
-	//returns 200 for correct password, 401 unauthorized
-
-	//userIP := getIP(w,r)
-
-	//GenerateToken
-
 	var password Password
 
 	err := json.NewDecoder(r.Body).Decode(&password)
 	if err != nil {
 		panic(err)
+		return
 	}
 
-	PASSWORD := os.Getenv("PASSWORD")
+	if EnvPassword == password.Password {
+		w.WriteHeader(http.StatusOK)
+		token := tokenGenerator()
+		tokenMap[token] = ""
 
-	if PASSWORD == password.Password {
-		// Pass token
-		w.WriteHeader(200)
-		w.Write([]byte("200 - all good"))
+		json.NewEncoder(w).Encode(&PassToken{Token: token})
+
+		var tokenExpiryMilli = DefaultTokenExpiry
+
+		if len(EnvTokenExpiry) > 0 {
+			tokenExpiryMilli, err = strconv.Atoi(EnvTokenExpiry)
+			if err != nil {
+				tokenExpiryMilli = DefaultTokenExpiry
+			}
+		}
+
+		tokenExpiryTimer := time.NewTimer(time.Millisecond * time.Duration(tokenExpiryMilli))
+		go func() {
+			<-tokenExpiryTimer.C
+			delete(tokenMap, token)
+		}()
 	} else {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("401 - unathorized"))
+		w.WriteHeader(http.StatusUnauthorized)
 	}
 
-}
-
-type IsSecure struct {
-	IsSecure bool `json:"isSecure"`
 }
 
 func isSecure(w http.ResponseWriter, r *http.Request) {
@@ -169,13 +155,11 @@ func isSecure(w http.ResponseWriter, r *http.Request) {
 	//if PASSWORD is set, then true
 	//returns { "isSecure" : false/true }
 
-	PASSWORD := os.Getenv("PASSWORD")
-
-	if len(PASSWORD) != 0 {
-		s := IsSecure{ IsSecure: true }
+	if len(EnvPassword) > 0 {
+		s := IsSecure{IsSecure: true}
 		json.NewEncoder(w).Encode(s)
 	} else {
-		s := IsSecure{ IsSecure: false }
+		s := IsSecure{IsSecure: false}
 		json.NewEncoder(w).Encode(s)
 	}
 }
@@ -184,24 +168,40 @@ func restartContainer(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	containerId := vars["containerId"]
 
-	fmt.Printf("inside of restart container %s", containerId)
+	log.Printf("Restarting container %s", containerId)
 
 	waitDuration := 5 * time.Second
 	err := dockerClient.ContainerRestart(context.Background(), containerId, &waitDuration)
 
 	if err != nil {
 		panic(err)
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 	} else {
-		w.WriteHeader(200)
+		w.WriteHeader(http.StatusOK)
 	}
 
 }
 
-func CORS(next http.Handler) http.Handler {
+func ReturnJSON(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Content-Type", "application/json")
 		next.ServeHTTP(w, r)
+	})
+}
+
+func Protected(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		isSecure := len(EnvPassword) > 0
+		token := w.Header().Get("Authorization")
+		_, tokenExists := tokenMap[token]
+
+		if !isSecure || tokenExists {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		w.WriteHeader(http.StatusUnauthorized)
+		return
 	})
 }
 
@@ -211,17 +211,27 @@ func main() {
 
 	r := mux.NewRouter()
 
-	//TODO: build something that checks for password on all endpoints
-	r.HandleFunc("/containers", getAllContainers)
-	r.HandleFunc("/container/{containerId}/restart", restartContainer).Methods("POST")
-	r.HandleFunc("/container/{containerId}/detail", detailContainer)
+	r.Handle("/containers",
+		alice.New(Protected, ReturnJSON).Then(http.HandlerFunc(getAllContainers)))
+	r.Handle("/container/{containerId}/restart",
+		alice.New(Protected).Then(http.HandlerFunc(restartContainer))).Methods("POST")
+	r.Handle("/container/{containerId}/detail",
+		alice.New(Protected, ReturnJSON).Then(http.HandlerFunc(detailContainer)))
 
-	r.HandleFunc("/login", login).Methods("POST")
-	r.HandleFunc("/isSecure", isSecure)
+	r.Handle("/login", alice.New(ReturnJSON).Then(http.HandlerFunc(login))).Methods("POST", "OPTIONS")
+	r.Handle("/isSecure", alice.New(ReturnJSON).Then(http.HandlerFunc(isSecure)))
 
-	r.Use(CORS)
-	
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	if len(EnvPort) == 0 {
+		EnvPort = "8080"
+	}
+
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+
+	log.Printf("Starting HTTP server on port %s", EnvPort)
+
+	if err := http.ListenAndServe(":"+EnvPort, handlers.CORS(originsOk, methodsOk, headersOk)(r)); err != nil {
 		panic(err)
 	}
 }
