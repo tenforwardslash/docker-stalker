@@ -47,7 +47,14 @@ func detailContainer(w http.ResponseWriter, r *http.Request) {
 	fullContainerInfo, err := dockerClient.ContainerInspect(context.Background(), containerId)
 
 	if err != nil {
-		panic(err)
+		if client.IsErrContainerNotFound(err) {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			panic(err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		w.Write([]byte(err.Error()))
+		return
 	}
 
 	//get all network names
@@ -59,13 +66,13 @@ func detailContainer(w http.ResponseWriter, r *http.Request) {
 		i++
 	}
 
-	ports, exists := containerPortMap[containerId]
+	ports, exists := containerPortMap[fullContainerInfo.ID]
 
 	containerDetail := StalkerContainerDetail{
 		Mounts:           GetStalkerMounts(fullContainerInfo.Mounts),
 		Networks:         networkNames,
 		EnvVars:          fullContainerInfo.Config.Env,
-		StalkerContainer: containerMap[containerId],
+		StalkerContainer: containerMap[fullContainerInfo.ID],
 	}
 
 	if exists {
@@ -119,6 +126,8 @@ func login(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&password)
 	if err != nil {
 		panic(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
 		return
 	}
 

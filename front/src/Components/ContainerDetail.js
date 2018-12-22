@@ -1,6 +1,5 @@
 import {Component} from "react";
 import React from "react";
-import axios from "axios";
 
 import Constants from "../Constants";
 
@@ -9,12 +8,6 @@ import "../Utils/Common.scss"
 import errorHandler from "./HttpErrorHandler";
 
 const RestartEnum = Object.freeze({"active": 1, "success": 2, "failed": 3});
-
-const api = axios.create({
-    baseURL: Constants.API_BASE,
-    timeout: 10000,
-    headers: {...Constants.API_HEADER, "Authorization": localStorage.getItem("stalkerToken")}
-});
 
 class ContainerDetail extends Component {
     constructor(props) {
@@ -29,16 +22,18 @@ class ContainerDetail extends Component {
 
     componentDidMount() {
         let self = this;
-        console.log()
-        api.get(`/container/${self.props.match.params.containerId}/detail`).then(function (response) {
-            switch (response.status) {
-                case 200:
-                    console.log("nailed it", response.data);
-                    self.setState({detail: response.data});
-                    break;
-                default:
-                    console.log("unhandle-able status", response);
-                    break;
+
+        Constants.API.get(`/container/${self.props.match.params.containerId}/detail`).then(function (response) {
+            if (response) {
+                switch (response.status) {
+                    case 200:
+                        console.log("nailed it", response.data);
+                        self.setState({detail: response.data});
+                        break;
+                    default:
+                        console.warn("unhandle-able status", response);
+                        break;
+                }
             }
         });
     };
@@ -47,21 +42,20 @@ class ContainerDetail extends Component {
         let self = this;
         let id = this.state.detail.containerId;
         this.setState({restartState: RestartEnum.active});
-        api.post(`/container/${id}/restart`).then(function (response) {
-            console.log(response);
-            switch (response.status) {
-                case 200:
-                    console.log("successfully restarted");
-                    self.setState({restartState: RestartEnum.success});
-                    break;
-                default:
-                    self.setState({restartState: RestartEnum.failed});
-                    console.log("no idea");
-                    break;
+        Constants.API.post(`/container/${id}/restart`).then(function (response) {
+            if (response) {
+                switch (response.status) {
+                    case 200:
+                        console.log("successfully restarted");
+                        self.setState({restartState: RestartEnum.success});
+                        break;
+                    default:
+                        self.setState({restartState: RestartEnum.failed});
+                        console.log("no idea");
+                        break;
+                }
             }
-        }).catch(function (error) {
-            console.error("unable to restart", error)
-        })
+        });
     };
 
     render() {
@@ -125,7 +119,6 @@ const ListSection = (props) => {
         if (sectionProps.length === 0) {
             return <div/>
         }
-        console.log("SECTION", props.section, sectionProps);
         let sectionList = sectionProps.map((elem) =>
             <li key={"section-item-" + elem}>{elem}</li>
         );
@@ -139,4 +132,4 @@ const ListSection = (props) => {
 };
 
 
-export default errorHandler(ContainerDetail, api);
+export default errorHandler(ContainerDetail, Constants.API);

@@ -10,6 +10,7 @@ const errorHandler = (WrappedComponent, axios) => {
         componentWillMount() {
             // Set axios interceptors
             this.requestInterceptor = axios.interceptors.request.use(req => {
+                req.headers.Authorization = localStorage.getItem(Constants.TOKEN_KEY);
                 this.setState({ error: null });
                 return req;
             });
@@ -19,7 +20,8 @@ const errorHandler = (WrappedComponent, axios) => {
                 res => { return res; },
                 error => {
                     this.setState({ error });
-                    if (error.response.status === 401) {
+                    if (error.response
+                        && error.response.status === 401) {
                         this.props.history.push('/');
                         localStorage.removeItem(Constants.TOKEN_KEY);
                     }
@@ -35,8 +37,7 @@ const errorHandler = (WrappedComponent, axios) => {
         }
 
         render() {
-            console.log('rendering error handler component', this.state.error);
-            let renderSection = this.state.error ? <div>Error</div> : <WrappedComponent {...this.props} />
+            let renderSection = this.state.error ? <div style={{"color": "red", "fontSize": "20px"}}>{ this.state.error.response ? String(this.state.error.response.data) : String(this.state.error)}</div> : <WrappedComponent {...this.props} />
             return renderSection;
         }
     };

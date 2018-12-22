@@ -35,14 +35,12 @@ class Auth extends Component {
         axios.post(Constants.API_BASE + "/login", {password: this.state.value}).then(function (response) {
             let token = response.data.token;
             if (response.status === 200) {
-                localStorage.setItem("stalkerToken", token);
-                console.log("got token!", token);
+                localStorage.setItem(Constants.TOKEN_KEY, token);
                 self.setState({redirect: true});
             } else if (response.status === 401) {
-                this.props.history.push('/login');
-                console.log("bad login password")
+                console.warn("bad login password")
             } else {
-                console.log("unexpected status")
+                console.warn("unexpected status")
             }
         });
         event.preventDefault();

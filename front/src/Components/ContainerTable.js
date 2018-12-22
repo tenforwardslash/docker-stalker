@@ -1,11 +1,11 @@
 import {Component} from "react";
 import React from "react";
-import axios from "axios";
 import { Redirect } from 'react-router-dom';
 
 import Constants from "../Constants";
 import './ContainerTable.scss';
 import '../Utils/Common.scss'
+import errorHandler from "./HttpErrorHandler";
 
 class ContainerTable extends Component {
     constructor(props) {
@@ -25,30 +25,23 @@ class ContainerTable extends Component {
     }
     componentDidMount() {
         let self = this;
-        console.log('grabbing token', localStorage.getItem("stalkerToken"));
-        axios.get(Constants.API_BASE + "/containers",
-            { headers: {"Authorization": localStorage.getItem("stalkerToken")}}).then(function(response) {
-            switch (response.status) {
-                case 200:
-                    console.debug("successful container retrieval", response.data);
-                    self.setState({data: response.data});
-                    break;
-                case 401:
-                    console.error("unauthorized");
-                    this.props.history.push('/login');
-                    break;
-                default:
-                    console.error("cannot handle status code", response);
-                    break;
 
+        Constants.API.get("/containers").then(function(response) {
+            if (response) {
+                switch (response.status) {
+                    case 200:
+                        self.setState({data: response.data});
+                        break;
+                    default:
+                        console.warn("cannot handle status code", response);
+                        break;
+
+                }
             }
-        }).catch(function(error) {
-            console.error("error occurred!!!", error.toString())
-        })
+        });
     }
     handleRowClick(containerId) {
         //redirect to /container/{containerId}/detail
-        console.log(containerId);
         this.setState({clickedContainerId: containerId});
     }
 
@@ -67,23 +60,6 @@ class ContainerTable extends Component {
             return <Redirect push to={url} />
         }
         return <Table rows={this.state.data} renderItem={this.renderItem}/>
-
-        // let allItemRows = [];
-        // allItemRows.push((<tr key={"row-data-header"}>
-        //     <th>Image</th>
-        //     <th>Status</th>
-        //     <th>Created</th>
-        //     <th>Name</th>
-        // </tr>));
-        // console.log('rows1', allItemRows);
-        // this.state.data.forEach(item => {
-        //     const perItemRows = this.renderItem(item);
-        //     allItemRows = allItemRows.concat(perItemRows);
-        // });
-        // console.log('rows2', allItemRows);
-        // return (
-        //     <table><tbody>{allItemRows}</tbody></table>
-        // );
     }
 }
 
@@ -104,4 +80,4 @@ const Table = (props) => {
     );
 };
 
-export default ContainerTable;
+export default errorHandler(ContainerTable, Constants.API);

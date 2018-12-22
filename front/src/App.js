@@ -10,11 +10,11 @@ class App extends Component {
   render() {
     return (
         <div>
-            <h1 className="App-header stalker-color">docker stalker</h1><hr className="rule"/>
+            <a style={{"textDecoration": "none"}}href="/containers"><h1 className="App-header stalker-color">docker stalker</h1></a><hr className="rule"/>
             <Router>
                 <div className="App">
                     <Route exact path='/' render={()=><Auth />} />
-                    <Route exact path='/containers' render={()=><ContainerTable/>} />
+                    <Route exact path='/containers' render={(props)=><ContainerTable {...props}/>} />
                     <Route exact path="/container/:containerId" component={ContainerDetail} />
                 </div>
             </Router>
