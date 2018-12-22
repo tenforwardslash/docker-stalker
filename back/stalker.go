@@ -214,21 +214,28 @@ func Protected(next http.Handler) http.Handler {
 	})
 }
 
+func appHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "../front/build/index.html")
+}
+
 func main() {
 	//initialize docker client
 	dockerClient, _ = client.NewEnvClient()
 
 	r := mux.NewRouter()
 
-	r.Handle("/containers",
+	r.HandleFunc("/", appHandler)
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("../front/build/static"))))
+
+	r.Handle("/api/containers",
 		alice.New(Protected, ReturnJSON).Then(http.HandlerFunc(getAllContainers)))
-	r.Handle("/container/{containerId}/restart",
+	r.Handle("/api/container/{containerId}/restart",
 		alice.New(Protected).Then(http.HandlerFunc(restartContainer))).Methods("POST")
-	r.Handle("/container/{containerId}/detail",
+	r.Handle("/api/container/{containerId}/detail",
 		alice.New(Protected, ReturnJSON).Then(http.HandlerFunc(detailContainer)))
 
-	r.Handle("/login", alice.New(ReturnJSON).Then(http.HandlerFunc(login))).Methods("POST", "OPTIONS")
-	r.Handle("/isSecure", alice.New(ReturnJSON).Then(http.HandlerFunc(isSecure)))
+	r.Handle("/api/login", alice.New(ReturnJSON).Then(http.HandlerFunc(login))).Methods("POST", "OPTIONS")
+	r.Handle("/api/isSecure", alice.New(ReturnJSON).Then(http.HandlerFunc(isSecure)))
 
 	if len(EnvPort) == 0 {
 		EnvPort = "8080"
