@@ -26,7 +26,7 @@ class ContainerTable extends Component {
     componentDidMount() {
         let self = this;
         //todo: add to header the password
-        axios.get(Constants.API_BASE + "/containers").then(function(response) {
+        axios.get(Constants.API_BASE + "/containers", { headers: {"Authorization": localStorage.getItem("stalkerToken")}}).then(function(response) {
             switch (response.status) {
                 case 200:
                     console.debug("successful container retrieval", response.data);

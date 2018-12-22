@@ -60,7 +60,6 @@ func detailContainer(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(containerDetail)
 }
 
-
 type Password struct {
 	Password string `json:"password"`
 }
@@ -139,8 +138,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 	//userIP := getIP(w,r)
 
 	//GenerateToken
-
-	fmt.Printf("userIP: %s", string(userIP))
 
 	var password Password
 

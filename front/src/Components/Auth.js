@@ -8,7 +8,7 @@ import './Auth.scss';
 class Auth extends Component {
     constructor(props) {
         super(props);
-        this.state = {value: '', secure: null, secureErr: null, passThroughError: false, redirect: false};
+        this.state = {value: '', secureErr: null, passThroughError: false, redirect: false};
 
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -17,7 +17,9 @@ class Auth extends Component {
     componentDidMount() {
         let self = this;
         axios.get(Constants.API_BASE + '/isSecure').then(function (response) {
-            self.setState({secure: response.data.isSecure});
+            self.setState({
+                redirect: !response.data.isSecure,
+            });
           }).catch(function (error) {
               console.error("unable to get secure state!!", error);
               self.setState({secureErr: error})
@@ -31,9 +33,10 @@ class Auth extends Component {
     handleSubmit(event) {
         let self = this;
         axios.post(Constants.API_BASE + "/login", {password: this.state.value}).then(function (response) {
+            let token = response.data.token;
             if (response.status === 200) {
-                // todo: set password to local storage
                 self.setState({redirect: true});
+                localStorage.setItem("stalkerToken", token);
             } else if (response.status === 401) {
                 console.log("bad login password")
             } else {
