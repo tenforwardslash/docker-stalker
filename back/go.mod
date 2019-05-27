@@ -1,6 +1,7 @@
 module docker-stalker
 
 require (
+	github.com/Microsoft/go-winio v0.4.12 // indirect
 	github.com/docker/distribution v2.7.0+incompatible // indirect
 	github.com/docker/docker v1.13.1
 	github.com/docker/go-connections v0.4.0 // indirect
@@ -12,4 +13,5 @@ require (
 	github.com/pkg/errors v0.8.0 // indirect
 	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
 	golang.org/x/net v0.0.0-20181207154023-610586996380 // indirect
+	golang.org/x/sys v0.0.0-20190527104216-9cd6430ef91e // indirect
 )

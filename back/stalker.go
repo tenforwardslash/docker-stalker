@@ -214,6 +214,7 @@ func Protected(next http.Handler) http.Handler {
 	})
 }
 
+//serves compiled frontend code
 func appHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "../front/build/index.html")
 }
