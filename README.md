@@ -2,6 +2,18 @@
 
 This project is for making docker container management easier. Run the docker-stalker image, and be amazed at how you can suddenly see all your containers. 
 
+### Deployment Instructions: 
+
+Login to the server where you'd like to run Docker Stalker. The image can be found [here](https://hub.docker.com/r/10forward/docker-stalker). To start the dashboard with no password, run the following command: 
+
+```sh
+
+docker run -v //var/run/docker.sock:/var/run/docker.sock -p 8080:8080 10forward/docker-stalker
+
+```
+
+You should now see the docker dashboard running on port 8080!
+
 ### Backend
 
 Backend is a lightweight golang server that connects to the docker daemon, and exposes API's for retrieving running docker processes. 

@@ -1,7 +1,7 @@
 version: '3'
 services:
   stalker:
-    image: "docker-stalker"
+    image: "10forward/docker-stalker"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
