@@ -27,7 +27,6 @@ class ContainerDetail extends Component {
             if (response) {
                 switch (response.status) {
                     case 200:
-                        console.log("nailed it", response.data);
                         self.setState({detail: response.data});
                         break;
                     default:

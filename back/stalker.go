@@ -27,6 +27,7 @@ const DefaultTokenExpiry = 21600000
 var EnvPassword = os.Getenv("PASSWORD")
 var EnvPort = os.Getenv("PORT")
 var EnvTokenExpiry = os.Getenv("TOKEN_EXPIRY_MILLI")
+var AppBuildFolder = os.Getenv("APP_BUILD_FOLDER")
 
 type Password struct {
 	Password string `json:"password"`
@@ -216,7 +217,18 @@ func Protected(next http.Handler) http.Handler {
 
 //serves compiled frontend code
 func appHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "../front/build/index.html")
+
+	var buildPath = "../front/build"
+
+	if len(AppBuildFolder) > 0 {
+		buildPath = AppBuildFolder
+	}
+
+	var fullBuildPath = buildPath + "/index.html"
+
+	log.Printf("Trying to serve root index file at: %s", fullBuildPath)
+
+	http.ServeFile(w, r, fullBuildPath)
 }
 
 func main() {
@@ -225,8 +237,21 @@ func main() {
 
 	r := mux.NewRouter()
 
+
+	var buildPath = "../front/build"
+
+	if len(AppBuildFolder) > 0 {
+		buildPath = AppBuildFolder
+	}
+
+	var fullBuildPath = buildPath + "/static"
+
+	log.Printf("static files is located at: %s", fullBuildPath)
+
+
 	r.HandleFunc("/", appHandler)
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("../front/build/static"))))
+	r.PathPrefix("/static/").Handler(
+		http.StripPrefix("/static/", http.FileServer(http.Dir(buildPath + "/static"))))
 
 	r.Handle("/api/containers",
 		alice.New(Protected, ReturnJSON).Then(http.HandlerFunc(getAllContainers)))

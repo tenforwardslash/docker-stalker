@@ -11,6 +11,7 @@ It takes in the following environment variables:
 * `PASSWORD`: Optional password for accessing main docker stalker dashboard
 * `PORT`: Backend HTTP Server Port
 * `TOKEN_EXPIRY_MILLI`: Optional token expiration time before user is prompted to enter in the password again (default is 6 hours)
+* `APP_BUILD_FOLDER`: Folder where compiled react app can be found (default is development configuration, meaning it's assumed you're running inside of /back)
 
 If a password environment variable is not set, the docker stalker dashboard will by default be available to everybody (WARNING: this is dangerous, docker stalker has restart capabilities and exposes *all* environment variables for a container)
 
