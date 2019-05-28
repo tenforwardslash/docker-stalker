@@ -2,7 +2,6 @@ FROM alpine
 
 # create app directory
 RUN mkdir -p /app/static/static
-#WORKDIR /app
 
 # copy backend binary
 COPY back/docker-stalker /app
